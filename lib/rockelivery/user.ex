@@ -8,6 +8,8 @@ defmodule Rockelivery.User do
 
   @required_params [:address, :age, :cep, :cpf, :email, :password, :name]
 
+  @update_params @required_params -- [:password]
+
   @derive {Jason.Encoder, only: [:id, :age, :cpf, :address, :email]}
 
   schema "users" do
@@ -28,6 +30,18 @@ defmodule Rockelivery.User do
     |> cast(params, @required_params)
     |> validate_required(@required_params)
     |> validate_length(:password, min: 6)
+    |> validate_length(:cep, is: 8)
+    |> validate_length(:cpf, is: 11)
+    |> validate_number(:age, greater_than_or_equal_to: 18)
+    |> validate_format(:email, ~r/@/)
+    |> unique_constraint([:email])
+    |> unique_constraint([:cpf])
+    |> put_password_hash()
+  end
+
+  def changeset(struct, params) do
+    struct
+    |> cast(params, @update_params)
     |> validate_length(:cep, is: 8)
     |> validate_length(:cpf, is: 11)
     |> validate_number(:age, greater_than_or_equal_to: 18)
